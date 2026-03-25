@@ -1,4 +1,4 @@
-// 1. База данных товаров (Редактируйте этот список)
+// 1. База данных товаров
 const products = [
     {
         id: 1,
@@ -41,7 +41,7 @@ const catalogGrid = document.getElementById('catalog-grid');
 
 // 2. Функция отображения товаров
 function renderProducts(items) {
-    catalogGrid.innerHTML = ''; // Очищаем сетку
+    catalogGrid.innerHTML = ''; 
     
     if (items.length === 0) {
         catalogGrid.innerHTML = '<p>Товары не найдены</p>';
@@ -52,24 +52,29 @@ function renderProducts(items) {
         const card = document.createElement('div');
         card.className = 'product-card';
         
-        // Форматируем цену (добавляем пробелы: 25 000)
+        // Форматируем цену
         const formattedPrice = new Intl.NumberFormat('ru-RU').format(product.price);
 
+        // УБРАЛИ КНОПКУ, оставили только информацию
         card.innerHTML = `
             <img src="${product.image}" alt="${product.title}" class="product-image">
             <div class="product-info">
                 <h3 class="product-title">${product.title}</h3>
                 <div class="product-price">${formattedPrice} ₽</div>
-                <button class="btn-buy" onclick="alert('Товар: ${product.title}')">Купить</button>
             </div>
         `;
+        
+        // Добавляем клик на всю карточку для просмотра деталей
+        card.onclick = () => {
+            alert(`Товар: ${product.title}\nЦена: ${formattedPrice} ₽\n\nДля заказа свяжитесь с нами по телефону или в мессенджерах.`);
+        };
+        
         catalogGrid.appendChild(card);
     });
 }
 
 // 3. Функция фильтрации по категориям
 function filterCategory(category) {
-    // Подсветка активной кнопки
     document.querySelectorAll('.categories button').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 
