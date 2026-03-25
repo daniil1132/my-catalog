@@ -16,10 +16,10 @@ const products = [
     },
     {
         id: 3,
-        title: "Футболка белая",
+        title: "Юбка чёрная",
         price: 1200,
         category: "clothing",
-        image: "https://via.placeholder.com/300x200?text=T-Shirt"
+        image: "images/skirt.jpg"
     },
     {
         id: 4,
