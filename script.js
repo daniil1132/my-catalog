@@ -25,7 +25,7 @@ const products = [
     },
     {
         id: 3,
-        title: "Футболка белая",
+        title: "Юбка белая",
         price: 1200,
         category: "clothing",
         images: [
