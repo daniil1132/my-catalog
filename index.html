@@ -10,13 +10,11 @@
 
     <header>
         <div class="container">
-            <h1>Мой Магазин</h1>
-            <p>Лучшие товары по лучшим ценам</p>
+            <h1>Мой Каталог</h1>
+            <p>Ознакомьтесь с нашими товарами и ценами</p>
             
-            <!-- Поле поиска -->
             <input type="text" id="searchInput" placeholder="Поиск товара..." onkeyup="filterProducts()">
             
-            <!-- Кнопки категорий -->
             <div class="categories">
                 <button onclick="filterCategory('all')" class="active">Все</button>
                 <button onclick="filterCategory('electronics')">Электроника</button>
@@ -26,13 +24,52 @@
     </header>
 
     <main class="container">
-        <!-- Сюда JavaScript будет вставлять товары -->
         <div id="catalog-grid" class="catalog-grid"></div>
     </main>
+
+    <!-- Модальное окно для просмотра фото -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            
+            <div class="modal-body">
+                <!-- Левая часть: Галерея -->
+                <div class="modal-gallery-section">
+                    <div class="modal-gallery">
+                        <button class="gallery-nav prev" onclick="changePhoto(-1)">&#10094;</button>
+                        <img id="modalImage" src="" alt="Фото товара">
+                        <button class="gallery-nav next" onclick="changePhoto(1)">&#10095;</button>
+                    </div>
+                    <div class="modal-thumbnails" id="modalThumbnails"></div>
+                </div>
+                
+                <!-- Правая часть: Информация -->
+                <div class="modal-info-section">
+                    <div class="modal-header">
+                        <h2 id="modalTitle">Название товара</h2>
+                        <p id="modalPrice">0 ₽</p>
+                    </div>
+                    
+                    <div class="modal-description">
+                        <h3>Описание</h3>
+                        <p id="modalDesc">Описание товара</p>
+                    </div>
+                    
+                    <div class="modal-contacts">
+                        <h3>Контакты для заказа</h3>
+                        <p>📞 +7 (999) 000-00-00</p>
+                        <p>✉️ info@example.com</p>
+                        <p>💬 Telegram: @username</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">
             <p>&copy; 2024 Мой Каталог на GitHub Pages</p>
+            <p>📞 Телефон: +7 (999) 000-00-00 | ✉️ Email: info@example.com</p>
         </div>
     </footer>
 
