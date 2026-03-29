@@ -5,9 +5,9 @@ const products = [
         title: "Юбка белая",
         price: 1200,
         images: [
-            "images/skirt-1.jpg",
-            "images/skirt-2.jpg",
-            "images/skirt-3.jpg"
+            "images/skirt/skirt-1.jpg",
+            "images/skirt/skirt-2.jpg",
+            "images/skirt/skirt-3.jpg"
         ],
         description: "Стильная белая юбка. Идеально подходит для летнего сезона."
     },
