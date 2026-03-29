@@ -22,31 +22,24 @@ header {
     margin-bottom: 30px;
 }
 
-header h1 { margin: 0 0 10px; }
+header h1 { 
+    margin: 0 0 10px;
+    color: #333;
+}
 
-/* Поиск и фильтры */
+header p {
+    color: #666;
+    margin: 0 0 20px;
+}
+
+/* Поиск */
 #searchInput {
-    padding: 10px;
+    padding: 12px;
     width: 100%;
     max-width: 400px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.categories button {
-    padding: 8px 16px;
-    border: none;
-    background: #e0e0e0;
-    cursor: pointer;
-    border-radius: 20px;
-    margin: 0 5px;
-    transition: 0.3s;
-}
-
-.categories button:hover, .categories button.active {
-    background: #333;
-    color: #fff;
+    font-size: 16px;
 }
 
 /* Сетка товаров */

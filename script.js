@@ -1,62 +1,35 @@
-// 1. База данных товаров с несколькими фото
+// База данных товаров
 const products = [
     {
         id: 1,
-        title: "Смартфон Super X",
-        price: 25000,
-        category: "electronics",
+        title: "Юбка белая",
+        price: 1200,
         images: [
-            "images/phone-1.jpg",
-            "images/phone-2.jpg",
-            "images/phone-3.jpg"
+            "images/skirt-1.jpg",
+            "images/skirt-2.jpg"
         ],
-        description: "Современный смартфон с отличной камерой и долгим временем работы батареи. Дисплей 6.7 дюймов, память 256 ГБ."
+        description: "Стильная белая юбка. Идеально подходит для летнего сезона."
     },
     {
         id: 2,
-        title: "Ноутбук Pro 15",
-        price: 85000,
-        category: "electronics",
-        images: [
-            "images/laptop-1.jpg",
-            "images/laptop-2.jpg"
-        ],
-        description: "Мощный ноутбук для работы и развлечений. Процессор последнего поколения, 16 ГБ ОЗУ, SSD 512 ГБ."
-    },
-    {
-        id: 3,
-        title: "Юбка белая",
-        price: 1200,
-        category: "clothing",
-        images: [
-            "images/tshirt-1.jpg",
-            "images/tshirt-2.jpg",
-            "images/tshirt-3.jpg"
-        ],
-        description: "Классическая белая футболка из 100% хлопка. Удобный крой, подходит для повседневной носки."
-    },
-    {
-        id: 4,
         title: "Джинсы классические",
         price: 3500,
-        category: "clothing",
         images: [
             "images/jeans-1.jpg",
             "images/jeans-2.jpg"
         ],
-        description: "Классические джинсы прямого кроя. Качественная ткань, износостойкие."
+        description: "Классические джинсы прямого кроя. Качественная ткань."
     },
     {
-        id: 5,
-        title: "Наушники беспроводные",
-        price: 5000,
-        category: "electronics",
+        id: 3,
+        title: "Платье вечернее",
+        price: 5500,
         images: [
-            "images/headphones-1.jpg",
-            "images/headphones-2.jpg",
-            "images/headphones-3.jpg"
+            "images/dress-1.jpg",
+            "images/dress-2.jpg",
+            "images/dress-3.jpg"
         ],
-        description: "Беспроводные наушники с шумоподавлением и качественным звуком. Время работы до 30 часов."
+        description: "Элегантное вечернее платье для особых случаев."
     }
 ];
 
@@ -71,7 +44,7 @@ const modalThumbnails = document.getElementById('modalThumbnails');
 let currentProduct = null;
 let currentPhotoIndex = 0;
 
-// 2. Функция отображения товаров
+// Отображение товаров
 function renderProducts(items) {
     catalogGrid.innerHTML = '';
     
@@ -101,7 +74,7 @@ function renderProducts(items) {
     });
 }
 
-// 3. Открытие модального окна
+// Открытие модального окна
 function openModal(product) {
     currentProduct = product;
     currentPhotoIndex = 0;
@@ -118,7 +91,7 @@ function openModal(product) {
     document.body.style.overflow = 'hidden';
 }
 
-// 4. Закрытие модального окна
+// Закрытие модального окна
 function closeModal() {
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
@@ -136,7 +109,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// 5. Обновление главного фото
+// Обновление главного фото
 function updateModalImage() {
     if (currentProduct && currentProduct.images.length > 0) {
         modalImage.src = currentProduct.images[currentPhotoIndex];
@@ -158,7 +131,7 @@ function updateModalImage() {
     }
 }
 
-// 6. Переключение фото стрелками
+// Переключение фото стрелками
 function changePhoto(direction) {
     if (!currentProduct) return;
     
@@ -174,7 +147,7 @@ function changePhoto(direction) {
     updateModalImage();
 }
 
-// 7. Создание миниатюр
+// Создание миниатюр
 function createThumbnails() {
     modalThumbnails.innerHTML = '';
     
@@ -194,20 +167,7 @@ function createThumbnails() {
     });
 }
 
-// 8. Функция фильтрации по категориям
-function filterCategory(category) {
-    document.querySelectorAll('.categories button').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    if (category === 'all') {
-        renderProducts(products);
-    } else {
-        const filtered = products.filter(item => item.category === category);
-        renderProducts(filtered);
-    }
-}
-
-// 9. Функция поиска
+// Поиск товаров
 function filterProducts() {
     const query = document.getElementById('searchInput').value.toLowerCase();
     const filtered = products.filter(item => item.title.toLowerCase().includes(query));
