@@ -15,7 +15,7 @@ const products = [
         "title": "Джинсы классические",
         "price": 3500,
         "images": [
-            "images/jeans-1.jpg"
+            "images/6728026655.jpg"
         ],
         "description": "Классические джинсы прямого кроя"
     }
