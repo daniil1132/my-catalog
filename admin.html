@@ -66,70 +66,139 @@
             border: 1px solid #f5c6cb;
             display: block;
         }
-        .token-info {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #ffc107;
-        }
-        .token-info a { color: #007bff; }
         .loading {
             display: none;
             color: #007bff;
             margin-bottom: 15px;
         }
+        .login-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .login-screen input {
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+        .admin-panel {
+            display: none;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        .logout-btn {
+            background: #f44336;
+            float: right;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎨 Добавить товар</h1>
-        
-        <div class="token-info">
-            <strong>⚠️ Требуется GitHub Token</strong><br>
-            <a href="https://github.com/settings/tokens/new" target="_blank">Создайте токен здесь</a> 
-            (права: <strong>repo</strong>)
+        <!-- Экран входа -->
+        <div id="loginScreen" class="login-screen">
+            <h1>🔐 Вход в админ-панель</h1>
+            <p>Введите пароль для доступа</p>
+            <input type="password" id="adminPassword" placeholder="Пароль">
+            <button onclick="login()">Войти</button>
+            <div id="loginMessage" class="message"></div>
         </div>
 
-        <div id="message" class="message"></div>
-        <div id="loading" class="loading">⏳ Добавляю товар...</div>
+        <!-- Админ-панель -->
+        <div id="adminPanel" class="admin-panel">
+            <button class="logout-btn" onclick="logout()">🚪 Выйти</button>
+            <h1>🎨 Добавить товар</h1>
+            
+            <div class="info-box">
+                <strong>ℹ️ Как добавить товар:</strong><br>
+                1. Заполните название и цену<br>
+                2. Добавьте фото в папку images/ на GitHub<br>
+                3. Укажите имена файлов (images/foto.jpg)<br>
+                4. Нажмите "Добавить товар"
+            </div>
 
-        <div class="form-group">
-            <label for="token">GitHub Token:</label>
-            <input type="password" id="token" placeholder="ghp_...">
+            <div id="message" class="message"></div>
+            <div id="loading" class="loading">⏳ Добавляю товар...</div>
+
+            <div class="form-group">
+                <label for="title">Название товара:</label>
+                <input type="text" id="title" placeholder="Например: Платье летнее">
+            </div>
+
+            <div class="form-group">
+                <label for="price">Цена (рублей):</label>
+                <input type="number" id="price" placeholder="2500">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Описание:</label>
+                <textarea id="description" placeholder="Описание товара..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="images">Фото (имена файлов):</label>
+                <textarea id="images" placeholder="images/photo1.jpg&#10;images/photo2.jpg"></textarea>
+                <small>💡 Каждое фото с новой строки. Сначала загрузите фото в папку images/ на GitHub</small>
+            </div>
+
+            <button onclick="addProduct()">➕ Добавить товар</button>
+            <button class="secondary" onclick="window.location.href='/'">← На сайт</button>
         </div>
-
-        <div class="form-group">
-            <label for="title">Название товара:</label>
-            <input type="text" id="title" placeholder="Например: Платье летнее">
-        </div>
-
-        <div class="form-group">
-            <label for="price">Цена (рублей):</label>
-            <input type="number" id="price" placeholder="2500">
-        </div>
-
-        <div class="form-group">
-            <label for="description">Описание:</label>
-            <textarea id="description" placeholder="Описание товара..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="images">Фото (имена файлов):</label>
-            <textarea id="images" placeholder="images/photo1.jpg&#10;images/photo2.jpg"></textarea>
-            <small>Каждое фото с новой строки</small>
-        </div>
-
-        <button onclick="addProduct()">➕ Добавить товар</button>
-        <button class="secondary" onclick="window.location.href='/'">← На сайт</button>
     </div>
 
     <script>
+        // ================= НАСТРОЙКИ =================
+        // ВАШ GitHub Token (получите на https://github.com/settings/tokens)
+        const GITHUB_TOKEN = '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'; // ← ВСТАВЬТЕ СЮДА ВАШ ТОКЕН!
+        
         const GITHUB_OWNER = 'daniil1132';
         const REPO_NAME = 'my-catalog';
         const BRANCH = 'main';
+        
+        // ПАРОЛЬ для входа в админку (измените на свой!)
+        const ADMIN_PASSWORD = 'kraski2024'; // ← ИЗМЕНИТЕ ПАРОЛЬ!
+        // =============================================
 
-        // Правильная кодировка UTF-8 для base64
+        // Проверка входа при загрузке
+        window.onload = function() {
+            if (sessionStorage.getItem('isAdmin') === 'true') {
+                showAdminPanel();
+            }
+        };
+
+        // Вход
+        function login() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('isAdmin', 'true');
+                showAdminPanel();
+            } else {
+                showLoginMessage('❌ Неверный пароль!', 'error');
+            }
+        }
+
+        // Выход
+        function logout() {
+            sessionStorage.removeItem('isAdmin');
+            location.reload();
+        }
+
+        // Показать админ-панель
+        function showAdminPanel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        // Функции кодировки
         function utf8_to_base64(str) {
             return window.btoa(unescape(encodeURIComponent(str)));
         }
@@ -138,17 +207,12 @@
             return decodeURIComponent(escape(window.atob(base64Str)));
         }
 
+        // Добавление товара
         async function addProduct() {
-            const token = document.getElementById('token').value.trim();
             const title = document.getElementById('title').value.trim();
             const price = document.getElementById('price').value.trim();
             const description = document.getElementById('description').value.trim();
             const imagesText = document.getElementById('images').value.trim();
-
-            if (!token) {
-                showMessage('Введите GitHub Token!', 'error');
-                return;
-            }
 
             if (!title || !price) {
                 showMessage('Заполните название и цену!', 'error');
@@ -171,7 +235,7 @@
                 // Получаем текущий script.js
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js?ref=${BRANCH}`, {
                     headers: {
-                        'Authorization': `token ${token}`,
+                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
@@ -182,7 +246,7 @@
 
                 const data = await response.json();
                 
-                // Декодируем с правильной кодировкой
+                // Декодируем
                 let currentContent;
                 try {
                     currentContent = base64_to_utf8(data.content);
@@ -191,10 +255,8 @@
                     throw new Error('Ошибка кодировки файла');
                 }
 
-                // Добавляем новый товар ПЕРЕД закрывающей скобкой массива
+                // Добавляем новый товар
                 const productStr = '    ' + JSON.stringify(newProduct, null, 4);
-                
-                // Ищем последнюю закрывающую скобку массива products
                 const regex = /(const products = \[)([\s\S]*?)(\];)/;
                 const match = currentContent.match(regex);
                 
@@ -205,19 +267,18 @@
                 const before = match[1];
                 const middle = match[2].trim();
                 const after = match[3];
-                
-                // Добавляем запятую если есть другие товары
                 const comma = middle ? ',\n' : '\n';
-                updatedContent = currentContent.replace(
+                
+                const updatedContent = currentContent.replace(
                     regex,
                     `${before}\n${middle}${comma}${productStr}\n${after}`
                 );
 
-                // Сохраняем с правильной кодировкой
+                // Сохраняем
                 const saveResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${token}`,
+                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Accept': 'application/vnd.github.v3+json',
                         'Content-Type': 'application/json'
                     },
@@ -258,6 +319,23 @@
                 msgDiv.className = 'message';
             }, 5000);
         }
+
+        function showLoginMessage(text, type) {
+            const msgDiv = document.getElementById('loginMessage');
+            msgDiv.textContent = text;
+            msgDiv.className = 'message ' + type;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Enter для входа
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('adminPassword') === document.activeElement) {
+                login();
+            }
+        });
     </script>
 </body>
 </html>
