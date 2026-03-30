@@ -18,13 +18,8 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
         label {
             display: block;
             margin-bottom: 5px;
@@ -39,10 +34,7 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
+        textarea { min-height: 100px; resize: vertical; }
         button {
             background: #27ae60;
             color: white;
@@ -53,15 +45,9 @@
             cursor: pointer;
             margin-right: 10px;
         }
-        button:hover {
-            background: #219a52;
-        }
-        button.secondary {
-            background: #95a5a6;
-        }
-        button.secondary:hover {
-            background: #7f8c8d;
-        }
+        button:hover { background: #219a52; }
+        button.secondary { background: #95a5a6; }
+        button.secondary:hover { background: #7f8c8d; }
         .message {
             padding: 15px;
             border-radius: 5px;
@@ -87,9 +73,7 @@
             margin-bottom: 20px;
             border: 1px solid #ffc107;
         }
-        .token-info a {
-            color: #007bff;
-        }
+        .token-info a { color: #007bff; }
         .loading {
             display: none;
             color: #007bff;
@@ -104,7 +88,7 @@
         <div class="token-info">
             <strong>⚠️ Требуется GitHub Token</strong><br>
             <a href="https://github.com/settings/tokens/new" target="_blank">Создайте токен здесь</a> 
-            (права: <strong>repo</strong>, <strong>workflow</strong>)
+            (права: <strong>repo</strong>)
         </div>
 
         <div id="message" class="message"></div>
@@ -131,7 +115,7 @@
         </div>
 
         <div class="form-group">
-            <label for="images">Фото (URL или имена файлов):</label>
+            <label for="images">Фото (имена файлов):</label>
             <textarea id="images" placeholder="images/photo1.jpg&#10;images/photo2.jpg"></textarea>
             <small>Каждое фото с новой строки</small>
         </div>
@@ -144,6 +128,15 @@
         const GITHUB_OWNER = 'daniil1132';
         const REPO_NAME = 'my-catalog';
         const BRANCH = 'main';
+
+        // Правильная кодировка UTF-8 для base64
+        function utf8_to_base64(str) {
+            return window.btoa(unescape(encodeURIComponent(str)));
+        }
+
+        function base64_to_utf8(base64Str) {
+            return decodeURIComponent(escape(window.atob(base64Str)));
+        }
 
         async function addProduct() {
             const token = document.getElementById('token').value.trim();
@@ -175,7 +168,7 @@
             document.getElementById('loading').style.display = 'block';
 
             try {
-                // Пробуем получить текущий script.js
+                // Получаем текущий script.js
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js?ref=${BRANCH}`, {
                     headers: {
                         'Authorization': `token ${token}`,
@@ -183,210 +176,62 @@
                     }
                 });
 
-                let updatedContent;
+                if (!response.ok) {
+                    throw new Error('Не удалось получить файл script.js');
+                }
 
-                if (response.ok) {
-                    // Файл существует, читаем его
-                    const data = await response.json();
-                    
-                    // Безопасно декодируем base64
-                    let currentContent;
-                    try {
-                        currentContent = atob(data.content);
-                    } catch (e) {
-                        console.error('Error decoding:', e);
-                        currentContent = data.content;
-                    }
+                const data = await response.json();
+                
+                // Декодируем с правильной кодировкой
+                let currentContent;
+                try {
+                    currentContent = base64_to_utf8(data.content);
+                } catch (e) {
+                    console.error('Error decoding:', e);
+                    throw new Error('Ошибка кодировки файла');
+                }
 
-                    // Добавляем новый товар в массив
-                    const productStr = JSON.stringify(newProduct, null, 4);
-                    updatedContent = currentContent.replace(
-                        /(const products = \[)/,
-                        `$1\n    ${productStr},`
-                    );
+                // Добавляем новый товар ПЕРЕД закрывающей скобкой массива
+                const productStr = '    ' + JSON.stringify(newProduct, null, 4);
+                
+                // Ищем последнюю закрывающую скобку массива products
+                const regex = /(const products = \[)([\s\S]*?)(\];)/;
+                const match = currentContent.match(regex);
+                
+                if (!match) {
+                    throw new Error('Не удалось найти массив products в script.js');
+                }
+                
+                const before = match[1];
+                const middle = match[2].trim();
+                const after = match[3];
+                
+                // Добавляем запятую если есть другие товары
+                const comma = middle ? ',\n' : '\n';
+                updatedContent = currentContent.replace(
+                    regex,
+                    `${before}\n${middle}${comma}${productStr}\n${after}`
+                );
 
-                    // Сохраняем
-                    await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `Add product: ${title}`,
-                            content: btoa(unescape(encodeURIComponent(updatedContent))),
-                            sha: data.sha,
-                            branch: BRANCH
-                        })
-                    });
+                // Сохраняем с правильной кодировкой
+                const saveResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add product: ${title}`,
+                        content: utf8_to_base64(updatedContent),
+                        sha: data.sha,
+                        branch: BRANCH
+                    })
+                });
 
-                } else {
-                    // Файл не существует, создаём новый
-                    const newContent = `// Каталог товаров "Краски Сезона"
-
-const products = [
-    ${JSON.stringify(newProduct, null, 4)}
-];
-
-const catalogGrid = document.getElementById('catalog-grid');
-const modal = document.getElementById('photoModal');
-const modalImage = document.getElementById('modalImage');
-const modalTitle = document.getElementById('modalTitle');
-const modalPrice = document.getElementById('modalPrice');
-const modalDesc = document.getElementById('modalDesc');
-const modalThumbnails = document.getElementById('modalThumbnails');
-
-let currentProduct = null;
-let currentPhotoIndex = 0;
-
-// Отображение товаров
-function renderProducts(items) {
-    catalogGrid.innerHTML = '';
-    
-    if (items.length === 0) {
-        catalogGrid.innerHTML = '<p>Товары не найдены</p>';
-        return;
-    }
-
-    items.forEach(product => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        
-        const formattedPrice = new Intl.NumberFormat('ru-RU').format(product.price);
-        const mainImage = product.images[0];
-
-        card.innerHTML = \`
-            <img src="\${mainImage}" alt="\${product.title}" class="product-image">
-            <div class="product-info">
-                <h3 class="product-title">\${product.title}</h3>
-                <div class="product-price">\${formattedPrice} ₽</div>
-            </div>
-        \`;
-        
-        card.onclick = () => openModal(product);
-        
-        catalogGrid.appendChild(card);
-    });
-}
-
-// Открытие модального окна
-function openModal(product) {
-    currentProduct = product;
-    currentPhotoIndex = 0;
-    
-    modalTitle.textContent = product.title;
-    const formattedPrice = new Intl.NumberFormat('ru-RU').format(product.price);
-    modalPrice.textContent = \`\${formattedPrice} ₽\`;
-    modalDesc.textContent = product.description || 'Описание отсутствует';
-    
-    updateModalImage();
-    createThumbnails();
-    
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-// Закрытие модального окна
-function closeModal() {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-modal.onclick = (e) => {
-    if (e.target === modal) {
-        closeModal();
-    }
-};
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeModal();
-    }
-});
-
-// Обновление главного фото
-function updateModalImage() {
-    if (currentProduct && currentProduct.images.length > 0) {
-        modalImage.src = currentProduct.images[currentPhotoIndex];
-        
-        document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
-            thumb.classList.toggle('active', index === currentPhotoIndex);
-        });
-        
-        const prevBtn = document.querySelector('.gallery-nav.prev');
-        const nextBtn = document.querySelector('.gallery-nav.next');
-        
-        if (currentProduct.images.length === 1) {
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-        } else {
-            prevBtn.disabled = false;
-            nextBtn.disabled = false;
-        }
-    }
-}
-
-// Переключение фото стрелками
-function changePhoto(direction) {
-    if (!currentProduct) return;
-    
-    const total = currentProduct.images.length;
-    currentPhotoIndex += direction;
-    
-    if (currentPhotoIndex < 0) {
-        currentPhotoIndex = total - 1;
-    } else if (currentPhotoIndex >= total) {
-        currentPhotoIndex = 0;
-    }
-    
-    updateModalImage();
-}
-
-// Создание миниатюр
-function createThumbnails() {
-    modalThumbnails.innerHTML = '';
-    
-    if (!currentProduct || currentProduct.images.length <= 1) {
-        return;
-    }
-    
-    currentProduct.images.forEach((imgSrc, index) => {
-        const thumb = document.createElement('img');
-        thumb.src = imgSrc;
-        thumb.className = 'thumbnail' + (index === currentPhotoIndex ? ' active' : '');
-        thumb.onclick = () => {
-            currentPhotoIndex = index;
-            updateModalImage();
-        };
-        modalThumbnails.appendChild(thumb);
-    });
-}
-
-// Поиск товаров
-function filterProducts() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = products.filter(item => item.title.toLowerCase().includes(query));
-    renderProducts(filtered);
-}
-
-// Запуск при загрузке страницы
-renderProducts(products);
-`;
-
-                    await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `Add product: ${title}`,
-                            content: btoa(unescape(encodeURIComponent(newContent))),
-                            branch: BRANCH
-                        })
-                    });
+                if (!saveResponse.ok) {
+                    const error = await saveResponse.json();
+                    throw new Error(error.message || 'Не удалось сохранить');
                 }
 
                 showMessage(`✅ Товар "${title}" добавлен! Сайт обновится через 1-2 минуты.`, 'success');
@@ -398,7 +243,7 @@ renderProducts(products);
                 document.getElementById('images').value = '';
 
             } catch (error) {
-                showMessage('Ошибка: ' + error.message, 'error');
+                showMessage('❌ Ошибка: ' + error.message, 'error');
                 console.error(error);
             } finally {
                 document.getElementById('loading').style.display = 'none';
