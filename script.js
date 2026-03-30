@@ -1,7 +1,7 @@
 // Каталог товаров "Краски Сезона"
 
 const products = [
-{
+    {
         id: 1,
         title: "Юбка белая",
         price: 1200,
@@ -18,16 +18,7 @@ const products = [
             "images/jeans-1.jpg"
         ],
         description: "Классические джинсы"
-    },
-    {
-    "id": 1774884491301,
-    "title": "штаны",
-    "price": 123120302,
-    "description": "12312321414",
-    "images": [
-        "images/placeholder.jpg"
-    ]
-}
+    }
 ];
 
 const catalogGrid = document.getElementById('catalog-grid');
