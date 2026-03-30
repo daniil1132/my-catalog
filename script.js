@@ -1,7 +1,7 @@
 // Каталог товаров "Краски Сезона"
 
 const products = [
-{
+    {
         "id": 1,
         "title": "Юбка белая",
         "price": 1200,
@@ -18,17 +18,7 @@ const products = [
             "images/6728026655.jpg"
         ],
         "description": "Классические джинсы прямого кроя"
-    },
-    {
-    "id": 1774894280613,
-    "title": "234234",
-    "price": 234234,
-    "description": "234234324",
-    "images": [
-        "images/1774894257869_0_cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAzL3BmLXM3Mi1wYWktMTAtMDEtbW9ja3VwLWEtam9iMTc2OS1sZjhjd2xzay5qcGc.jpg",
-        "images/1774894269286_0_6728026655.jpg"
-    ]
-}
+    }
 ];
 
 const catalogGrid = document.getElementById('catalog-grid');
