@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Краски Сезона</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f4f4f9;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #219a52;
+        }
+        button.secondary {
+            background: #95a5a6;
+        }
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .token-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ffc107;
+        }
+        .token-info a {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Добавить товар</h1>
+        
+        <div class="token-info">
+            <strong> Требуется GitHub Token</strong><br>
+            <a href="https://github.com/settings/tokens/new" target="_blank">Создайте токен здесь</a> 
+            (права: <strong>repo</strong>, <strong>workflow</strong>)
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="form-group">
+            <label for="token">GitHub Token:</label>
+            <input type="password" id="token" placeholder="ghp_...">
+        </div>
+
+        <div class="form-group">
+            <label for="title">Название товара:</label>
+            <input type="text" id="title" placeholder="Например: Платье летнее">
+        </div>
+
+        <div class="form-group">
+            <label for="price">Цена (рублей):</label>
+            <input type="number" id="price" placeholder="2500">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Описание:</label>
+            <textarea id="description" placeholder="Описание товара..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="images">Фото (URL или имена файлов):</label>
+            <textarea id="images" placeholder="images/photo1.jpg&#10;images/photo2.jpg"></textarea>
+            <small>Каждое фото с новой строки</small>
+        </div>
+
+        <button onclick="addProduct()">➕ Добавить товар</button>
+        <button class="secondary" onclick="window.location.href='/'">← На сайт</button>
+    </div>
+
+    <script>
+        const GITHUB_OWNER = 'daniil1132';
+        const REPO_NAME = 'my-catalog';
+        const BRANCH = 'main';
+
+        async function addProduct() {
+            const token = document.getElementById('token').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const price = document.getElementById('price').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const imagesText = document.getElementById('images').value.trim();
+
+            if (!token) {
+                showMessage('Введите GitHub Token!', 'error');
+                return;
+            }
+
+            if (!title || !price) {
+                showMessage('Заполните название и цену!', 'error');
+                return;
+            }
+
+            const images = imagesText.split('\n').map(img => img.trim()).filter(img => img);
+
+            const product = {
+                id: Date.now(),
+                title: title,
+                price: parseInt(price),
+                description: description || 'Описание отсутствует',
+                images: images.length > 0 ? images : ['images/placeholder.jpg']
+            };
+
+            try {
+                // Получаем текущий файл script.js
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js?ref=${BRANCH}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                const data = await response.json();
+                const content = atob(data.content);
+                
+                // Обновляем products массив
+                const updatedContent = content.replace(
+                    /const products = \[/,
+                    `const products = [\n    ${JSON.stringify(product, null, 8).replace(/\n/g, '\n    ')},`
+                );
+
+                // Сохраняем обратно
+                const saveResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${REPO_NAME}/contents/script.js`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add product: ${title}`,
+                        content: btoa(updatedContent),
+                        sha: data.sha,
+                        branch: BRANCH
+                    })
+                });
+
+                if (saveResponse.ok) {
+                    showMessage(`✅ Товар "${title}" добавлен! Сайт обновится через 1-2 минуты.`, 'success');
+                    // Очистить форму
+                    document.getElementById('title').value = '';
+                    document.getElementById('price').value = '';
+                    document.getElementById('description').value = '';
+                    document.getElementById('images').value = '';
+                } else {
+                    const error = await saveResponse.json();
+                    showMessage('Ошибка: ' + error.message, 'error');
+                }
+
+            } catch (error) {
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = 'message ' + type;
+            setTimeout(() => {
+                msgDiv.className = 'message';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
